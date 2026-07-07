@@ -2,6 +2,9 @@ let game = null;
 let board = null;
 let gameMode = null;
 
+
+let sourceSquare = null; 
+
 const menuScreen = document.getElementById("menu");
 const gameScreen = document.getElementById("game-screen");
 const statusEl = document.getElementById("status");
@@ -16,10 +19,8 @@ function startGame(mode) {
     menuScreen.style.display = "none";
     gameScreen.style.display = "flex";
 
-
     game = new Chess();
     updateStatus();
-
 
     const config = {
         draggable: true,
@@ -30,38 +31,60 @@ function startGame(mode) {
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
     };
 
-
     board = ChessBoard('board', config);
-}
 
-
-function onDragStart(source, piece, position, orientation) {
-    if (game.game_over()) return false;
-
-
-    if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-        (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-        return false;
-    }
-
-
-    if (gameMode === 'ai' && game.turn() === 'b') {
-        return false;
-    }
-}
-
-
-function onDrop(source, target) {
     
+    removeHighlights();
+    $('#board').on('click', '.square-55d63', handleSquareClick);
+    #endregion
+}
+
+
+function handleSquareClick() {
+    if (game.game_over()) return;
+    if (gameMode === 'ai' && game.turn() === 'b') return;
+
+    const square = $(this).data('square');
+    const piece = game.get(square);
+
+    
+    if (sourceSquare === null) {
+        if (!piece || piece.color !== game.turn()) return; // Must click your own piece
+        
+        sourceSquare = square;
+        highlightSquare(square); 
+        return;
+    }
+
+    
+    if (sourceSquare === square) {
+        sourceSquare = null;
+        removeHighlights();
+        return;
+    }
+
+    
+    if (piece && piece.color === game.turn()) {
+        sourceSquare = square;
+        removeHighlights();
+        highlightSquare(square);
+        return;
+    }
+
+  
     const move = game.move({
-        from: source,
-        to: target,
-        promotion: 'q' 
+        from: sourceSquare,
+        to: square,
+        promotion: 'q'
     });
 
     
-    if (move === null) return 'snapback';
+    if (move === null) return;
 
+    // Move is successful!
+    sourceSquare = null;
+    removeHighlights();
+    board.position(game.fen());
     updateStatus();
 
     
@@ -71,15 +94,57 @@ function onDrop(source, target) {
 }
 
 
+function highlightSquare(square) {
+    const $square = $('#board .square-' + square);
+    $square.css('box-shadow', 'inset 0 0 3px 3px yellow');
+}
+
+function removeHighlights() {
+    $('#board .square-55d63').css('box-shadow', '');
+}
+
+function onDragStart(source, piece, position, orientation) {
+    if (game.game_over()) return false;
+
+    if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+        (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+    }
+
+    if (gameMode === 'ai' && game.turn() === 'b') {
+        return false;
+    }
+    
+    
+    sourceSquare = null;
+    removeHighlights();
+}
+
+function onDrop(source, target) {
+    const move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q' 
+    });
+
+    if (move === null) return 'snapback';
+
+    sourceSquare = null;
+    removeHighlights();
+    updateStatus();
+
+    if (gameMode === 'ai' && !game.game_over()) {
+        window.setTimeout(makeRandomAIMove, 300);
+    }
+}
+
 function onSnapEnd() {
     board.position(game.fen());
 }
 
-
 function makeRandomAIMove() {
     const possibleMoves = game.moves();
 
-    // Exit immediately if game is over
     if (possibleMoves.length === 0) return;
 
     const randomIdx = Math.floor(Math.random() * possibleMoves.length);
@@ -111,6 +176,11 @@ function updateStatus() {
 }
 
 function resetToMenu() {
+
+    $('#board').off('click', '.square-55d63');
+    sourceSquare = null;
+    removeHighlights();
+
     if (board) board.clear();
     game = null;
     board = null;
