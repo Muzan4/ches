@@ -2,10 +2,24 @@ let game = null;
 let board = null;
 let gameMode = null;
 let sourceSquare = null;
+let isMobileLayout = false;
 
 const menuScreen = document.getElementById("menu");
 const gameScreen = document.getElementById("game-screen");
 const statusEl = document.getElementById("status");
+
+function isTouchDevice() {
+    return window.matchMedia('(pointer: coarse)').matches ||
+        window.innerWidth <= 768 ||
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0;
+}
+
+window.addEventListener('resize', () => {
+    if (board) {
+        board.resize();
+    }
+});
 
 document.getElementById("btn-local").addEventListener("click", () => startGame("local"));
 document.getElementById("btn-ai").addEventListener("click", () => startGame("ai"));
@@ -13,19 +27,25 @@ document.getElementById("btn-back").addEventListener("click", resetToMenu);
 
 function startGame(mode) {
     gameMode = mode;
+    isMobileLayout = isTouchDevice();
     menuScreen.style.display = "none";
     gameScreen.style.display = "flex";
     game = new Chess();
     updateStatus();
     const config = {
-        draggable: true,
+        draggable: !isMobileLayout,
         position: 'start',
-        onDragStart: onDragStart,
-        onDrop: onDrop,
         onSnapEnd: onSnapEnd,
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
     };
+
+    if (!isMobileLayout) {
+        config.onDragStart = onDragStart;
+        config.onDrop = onDrop;
+    }
+
     board = ChessBoard('board', config);
+    board.resize();
     removeHighlights();
     $('#board').on('click', '.square-55d63', handleSquareClick);
 }
@@ -120,6 +140,7 @@ function makeRandomAIMove() {
 function updateStatus() {
     let statusText = "";
     const moveColor = game.turn() === "b" ? "Black" : "White";
+    const controlHint = isMobileLayout ? " • Tap a piece, then tap a square" : " • Drag and drop pieces";
     if (game.in_checkmate()) {
         statusText = `Game Over! ${moveColor} is in checkmate.`;
     } else if (game.in_draw()) {
@@ -130,6 +151,7 @@ function updateStatus() {
         } else {
             statusText = `${moveColor}'s Turn to Move`;
         }
+        statusText += controlHint;
         if (game.in_check()) {
             statusText += " (In Check!)";
         }
