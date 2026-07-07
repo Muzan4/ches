@@ -3,68 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Chess Engine</title>
+    <title>Chess Meowster </title>
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cm-chessboard@4/assets/styles/cm-chessboard.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1a1a1a;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        h1 {
-            margin-bottom: 20px;
-            font-weight: 400;
-            letter-spacing: 1px;
-        }
-
-        .game-container {
-            width: 90vw;
-            max-width: 500px;
-            aspect-ratio: 1;
-            background: #242424;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .status {
-            margin-top: 20px;
-            font-size: 1.1rem;
-            color: #aaaaaa;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <link rel="stylesheet" href="cheslook.css">
 </head>
 <body>
 
-    <h1>Chess Portfolio Project</h1>
-    
-    <div id="board" class="game-container"></div>
-    
-    <div id="status" class="status">White's Turn</div>
+    <div class="app-container">
+        <h1>Chess Meowster </h1>
+        
+        <div id="menu" class="menu-container">
+            <h2>Select Game Mode</h2>
+            <button id="btn-local" class="menu-btn">Local Play (Pass & Play)</button>
+            <button id="btn-ai" class="menu-btn AI-btn">vs Computer AI</button>
+        </div>
 
+        <div id="game-screen" class="game-wrapper">
+            <div id="board" class="game-container"></div>
+            <div id="status" class="status-bar">Select a mode to begin</div>
+            <button id="btn-back" class="back-btn">‹ Main Menu</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-
-    <script type="module">
-        import { Chessboard } from "https://cdn.jsdelivr.net/npm/cm-chessboard@4/src/cm-chessboard/Chessboard.js";
-
-        const game = new Chess();
-
-        const board = new Chessboard(document.getElementById("board"), {
-            position: "start", // Start with normal chess setup
-            sprite: { url: "https://cdn.jsdelivr.net/npm/cm-chessboard@4/assets/images/chessboard-sprite.svg" },
-            responsive: true
-        });
-
-        console.log("Chess engine and board successfully loaded!");
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    
+    <script src="ches.js"></script>
 </body>
 </html>
