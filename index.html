@@ -3,24 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Chess Engine</title>
+    <title>Chess Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
     <link rel="stylesheet" href="cheslook.css">
 </head>
 <body>
-    <div class="app-container">
-        <h1>Chess Engine Project</h1>
-        <div id="menu" class="menu-container">
-            <h2>Select Game Mode</h2>
-            <button id="btn-local" class="menu-btn">Local Play (Pass & Play)</button>
-            <button id="btn-ai" class="menu-btn AI-btn">vs Computer AI</button>
-        </div>
-        <div id="game-screen" class="game-wrapper">
-            <div id="board" class="game-container"></div>
-            <div id="status" class="status-bar">Select a mode to begin</div>
-            <button id="btn-back" class="back-btn">‹ Main Menu</button>
-        </div>
+    <div class="bg-effects" aria-hidden="true">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+        <div class="bg-grid"></div>
     </div>
+
+    <div class="app">
+        <header class="app-header" id="app-header">
+            <div class="logo">
+                <div class="logo-mark">
+                    <span class="logo-piece">♔</span>
+                </div>
+                <div class="logo-text">
+                    <h1>Chess <span class="title-accent">Engine</span></h1>
+                    <p class="tagline">Strategic battles await</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <section id="menu" class="screen menu-screen active">
+                <div class="screen-intro">
+                    <span class="eyebrow">Portfolio Project</span>
+                    <h2 class="screen-title">Choose Your Battle</h2>
+                    <p class="screen-sub">Pick a mode and make your move.</p>
+                </div>
+
+                <div class="mode-grid">
+                    <button id="btn-local" class="mode-card mode-local" type="button">
+                        <span class="mode-card-glow"></span>
+                        <span class="mode-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </span>
+                        <span class="mode-content">
+                            <span class="mode-name">Local Play</span>
+                            <span class="mode-desc">Pass &amp; play with a friend on the same device</span>
+                        </span>
+                        <span class="mode-arrow" aria-hidden="true">→</span>
+                    </button>
+
+                    <button id="btn-ai" class="mode-card mode-ai" type="button">
+                        <span class="mode-card-glow"></span>
+                        <span class="mode-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                                <path d="M9 9h.01M15 9h.01"/>
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
+                            </svg>
+                        </span>
+                        <span class="mode-content">
+                            <span class="mode-name">vs Computer</span>
+                            <span class="mode-desc">Challenge the AI engine as White</span>
+                        </span>
+                        <span class="mode-arrow" aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </section>
+
+            <section id="game-screen" class="screen game-screen">
+                <div class="game-layout">
+                    <div class="board-area">
+                        <div class="board-frame">
+                            <div class="board-frame-corner board-frame-tl"></div>
+                            <div class="board-frame-corner board-frame-tr"></div>
+                            <div class="board-frame-corner board-frame-bl"></div>
+                            <div class="board-frame-corner board-frame-br"></div>
+                            <div id="board" class="game-container"></div>
+                        </div>
+                    </div>
+
+                    <aside class="game-panel">
+                        <div class="panel-top">
+                            <span id="mode-badge" class="mode-badge">Local Play</span>
+                            <button id="btn-back" class="back-btn" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                                </svg>
+                                Menu
+                            </button>
+                        </div>
+
+                        <div class="turn-track">
+                            <div class="turn-card turn-white" id="turn-white">
+                                <span class="turn-symbol">♔</span>
+                                <span class="turn-label">White</span>
+                            </div>
+                            <div class="turn-divider">
+                                <span class="turn-vs">VS</span>
+                            </div>
+                            <div class="turn-card turn-black" id="turn-black">
+                                <span class="turn-symbol">♚</span>
+                                <span class="turn-label">Black</span>
+                            </div>
+                        </div>
+
+                        <div class="status-card">
+                            <span class="status-label">Game Status</span>
+                            <p id="status" class="status-text">Select a mode to begin</p>
+                            <p id="control-hint" class="control-hint"></p>
+                        </div>
+
+                        <div class="panel-footer">
+                            <div class="hint-chip">
+                                <span class="hint-dot"></span>
+                                <span id="input-mode-label">Drag pieces to move</span>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </main>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>

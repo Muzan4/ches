@@ -3,10 +3,17 @@ let board = null;
 let gameMode = null;
 let sourceSquare = null;
 let isMobileLayout = false;
+let lastTouchTime = 0;
 
 const menuScreen = document.getElementById("menu");
 const gameScreen = document.getElementById("game-screen");
+const appHeader = document.getElementById("app-header");
 const statusEl = document.getElementById("status");
+const controlHintEl = document.getElementById("control-hint");
+const modeBadgeEl = document.getElementById("mode-badge");
+const inputModeLabel = document.getElementById("input-mode-label");
+const turnWhiteEl = document.getElementById("turn-white");
+const turnBlackEl = document.getElementById("turn-black");
 
 function isTouchDevice() {
     return window.matchMedia('(pointer: coarse)').matches ||
@@ -25,13 +32,30 @@ document.getElementById("btn-local").addEventListener("click", () => startGame("
 document.getElementById("btn-ai").addEventListener("click", () => startGame("ai"));
 document.getElementById("btn-back").addEventListener("click", resetToMenu);
 
+function showScreen(screen) {
+    menuScreen.classList.remove("active");
+    gameScreen.classList.remove("active");
+    screen.classList.add("active");
+}
+
 function startGame(mode) {
     gameMode = mode;
     isMobileLayout = isTouchDevice();
-    menuScreen.style.display = "none";
-    gameScreen.style.display = "flex";
+    sourceSquare = null;
+
+    modeBadgeEl.textContent = mode === "ai" ? "vs Computer" : "Local Play";
+    modeBadgeEl.classList.toggle("ai", mode === "ai");
+
+    inputModeLabel.textContent = isMobileLayout
+        ? "Tap a piece, then tap a square"
+        : "Drag pieces to move";
+
+    appHeader.classList.add("compact");
+    showScreen(gameScreen);
+
     game = new Chess();
     updateStatus();
+
     const config = {
         draggable: !isMobileLayout,
         position: 'start',
@@ -45,43 +69,79 @@ function startGame(mode) {
     }
 
     board = ChessBoard('board', config);
-    board.resize();
-    removeHighlights();
-    $('#board').on('click', '.square-55d63', handleSquareClick);
+
+    requestAnimationFrame(() => {
+        board.resize();
+        removeHighlights();
+    });
+
+    $('#board').off('click touchend', handleBoardClick);
+    if (isMobileLayout) {
+        $('#board').on('click touchend', handleBoardClick);
+    }
 }
 
-function handleSquareClick() {
+function getSquareFromEvent(e) {
+    const $square = $(e.target).closest('.square-55d63');
+    if (!$square.length) return null;
+    return $square.data('square');
+}
+
+function handleBoardClick(e) {
+    if (!isMobileLayout || !game) return;
+
+    if (e.type === 'touchend') {
+        lastTouchTime = Date.now();
+        e.preventDefault();
+    } else if (Date.now() - lastTouchTime < 400) {
+        return;
+    }
+
+    const square = getSquareFromEvent(e);
+    if (!square) return;
+
+    processSquareSelection(square);
+}
+
+function processSquareSelection(square) {
     if (game.game_over()) return;
     if (gameMode === 'ai' && game.turn() === 'b') return;
-    const square = $(this).data('square');
+
     const piece = game.get(square);
+
     if (sourceSquare === null) {
         if (!piece || piece.color !== game.turn()) return;
         sourceSquare = square;
         highlightSquare(square);
         return;
     }
+
     if (sourceSquare === square) {
         sourceSquare = null;
         removeHighlights();
         return;
     }
+
     if (piece && piece.color === game.turn()) {
         sourceSquare = square;
         removeHighlights();
         highlightSquare(square);
         return;
     }
+
     const move = game.move({
         from: sourceSquare,
         to: square,
         promotion: 'q'
     });
+
     if (move === null) return;
+
     sourceSquare = null;
     removeHighlights();
     board.position(game.fen());
     updateStatus();
+
     if (gameMode === 'ai' && !game.game_over()) {
         window.setTimeout(makeRandomAIMove, 300);
     }
@@ -89,14 +149,14 @@ function handleSquareClick() {
 
 function highlightSquare(square) {
     const $square = $('#board .square-' + square);
-    $square.css('box-shadow', 'inset 0 0 3px 3px yellow');
+    $square.css('box-shadow', 'inset 0 0 0 3px rgba(245, 200, 66, 0.85)');
 }
 
 function removeHighlights() {
     $('#board .square-55d63').css('box-shadow', '');
 }
 
-function onDragStart(source, piece, position, orientation) {
+function onDragStart(source, piece) {
     if (game.game_over()) return false;
     if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
         (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
@@ -116,9 +176,11 @@ function onDrop(source, target) {
         promotion: 'q'
     });
     if (move === null) return 'snapback';
+
     sourceSquare = null;
     removeHighlights();
     updateStatus();
+
     if (gameMode === 'ai' && !game.game_over()) {
         window.setTimeout(makeRandomAIMove, 300);
     }
@@ -137,36 +199,59 @@ function makeRandomAIMove() {
     updateStatus();
 }
 
+function updateTurnIndicator() {
+    const isWhiteTurn = game.turn() === "w";
+    turnWhiteEl.classList.toggle("active", isWhiteTurn);
+    turnBlackEl.classList.toggle("active", !isWhiteTurn);
+}
+
 function updateStatus() {
     let statusText = "";
+    let hintText = "";
+    statusEl.classList.remove("check", "game-over");
+    controlHintEl.textContent = "";
+
     const moveColor = game.turn() === "b" ? "Black" : "White";
-    const controlHint = isMobileLayout ? " • Tap a piece, then tap a square" : " • Drag and drop pieces";
+
     if (game.in_checkmate()) {
-        statusText = `Game Over! ${moveColor} is in checkmate.`;
+        statusText = `Checkmate! ${moveColor} wins.`;
+        statusEl.classList.add("game-over");
     } else if (game.in_draw()) {
-        statusText = "Game Over! Match is a Draw.";
+        statusText = "Draw — the game is tied.";
+        statusEl.classList.add("game-over");
     } else {
         if (gameMode === "ai") {
-            statusText = game.turn() === "w" ? "Your Turn (White)" : "Computer is thinking...";
+            statusText = game.turn() === "w" ? "Your turn" : "Computer is thinking…";
+            hintText = game.turn() === "w" ? "You play as White" : "Please wait";
         } else {
-            statusText = `${moveColor}'s Turn to Move`;
+            statusText = `${moveColor} to move`;
         }
-        statusText += controlHint;
         if (game.in_check()) {
-            statusText += " (In Check!)";
+            statusText += " — Check!";
+            statusEl.classList.add("check");
         }
     }
-    statusEl.innerText = statusText;
+
+    statusEl.textContent = statusText;
+    controlHintEl.textContent = hintText;
+    updateTurnIndicator();
 }
 
 function resetToMenu() {
-    $('#board').off('click', '.square-55d63');
+    $('#board').off('click touchend', handleBoardClick);
     sourceSquare = null;
     removeHighlights();
     if (board) board.clear();
     game = null;
     board = null;
     gameMode = null;
-    gameScreen.style.display = "none";
-    menuScreen.style.display = "flex";
+
+    appHeader.classList.remove("compact");
+    turnWhiteEl.classList.remove("active");
+    turnBlackEl.classList.remove("active");
+    statusEl.classList.remove("check", "game-over");
+    statusEl.textContent = "Select a mode to begin";
+    controlHintEl.textContent = "";
+
+    showScreen(menuScreen);
 }
