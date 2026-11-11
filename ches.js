@@ -130,6 +130,30 @@ window.addEventListener('resize', () => {
     if (board) board.resize();
 });
 
+// ─── Initialize GhostFibers Background Theme ───
+function startGhostFibers() {
+    if (typeof initGhostFibers === 'function') {
+        initGhostFibers('ghost-fibers-bg', {
+            glowColor: '#8b5cf6',
+            secondaryColor: '#6366f1',
+            layers: 3,
+            twist: 1.2,
+            threads: 72,
+            fiberStyle: 'dots',
+            depthOfField: 0.85,
+            hoverEffect: 'focus',
+            intro: true,
+            mouseInteraction: true
+        });
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startGhostFibers);
+} else {
+    startGhostFibers();
+}
+
 // ─── Screen Navigation ───
 function showScreen(screen) {
     menuScreen.classList.remove('active');
