@@ -194,10 +194,17 @@ function startGame(mode) {
     }
     board = ChessBoard('board', config);
 
+    // Double resize to ensure chessboard.js accurately fits after DOM reflow
     requestAnimationFrame(() => {
-        board.resize();
+        if (board) board.resize();
         clearHighlights();
     });
+    setTimeout(() => {
+        if (board) board.resize();
+    }, 60);
+    setTimeout(() => {
+        if (board) board.resize();
+    }, 250);
 
     // Support click-to-move in addition to dragging
     $('#board').off('click').on('click', '.square-55d63', handleSquareClick);
